@@ -1,0 +1,57 @@
+{
+  "ignoreExtensions": [
+    ".md",
+    ".txt",
+    ".json",
+    ".yaml",
+    ".yml",
+    ".toml",
+    ".csv",
+    ".html",
+    ".css",
+    ".scss",
+    ".less",
+    ".svg",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".ico",
+    ".woff",
+    ".woff2",
+    ".ttf",
+    ".eot"
+  ],
+  "ignorePatterns": [
+    "node_modules/",
+    ".git/",
+    "dist/",
+    "build/",
+    "out/",
+    "coverage/",
+    ".next/",
+    ".venv/",
+    "venv/",
+    "__pycache__/",
+    "*.min.js",
+    "*.d.ts"
+  ],
+  "ignoreFiles": [
+    "README.md",
+    "LICENSE",
+    "CONTRIBUTING.md",
+    "CHANGELOG.md",
+    ".env",
+    ".env.example",
+    ".gitignore",
+    ".piignore"
+  ],
+  "supportedLanguages": {
+    ".js": "javascript",
+    ".ts": "javascript",
+    ".tsx": "javascript",
+    ".gs": "javascript",
+    ".py": "python"
+  },
+  "pythonStyle": null
+}

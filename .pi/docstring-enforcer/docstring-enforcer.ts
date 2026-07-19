@@ -1,114 +1,102 @@
 /**
  * Docstring Enforcer Extension
  *
- * After any write or edit to a .gs or .ts file, scans the file for
- * named function declarations that are missing JSDoc docstrings.
- * If any are found, sends a steer message prompting the AI to add them.
+ * After any write or edit, scans supported files for missing docstrings
+ * and sends a steer message prompting the AI to add them.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import {
+  detectLanguage,
+  getChecker,
+  getSupportedExtensions,
+  isIgnored,
+  loadConfig,
+  type Config,
+  type MissingDocstring,
+} from "./factories/index.ts";
 
-const TARGET_EXTENSIONS = [".gs", ".ts"];
-const JS_KEYWORDS = new Set([
-  "if", "while", "for", "switch", "catch", "with", "do", "try", "async",
-]);
+const CONFIG_PATH = ".pi/docstring-enforcer/docstring_config.json";
 
-/**
- * Checks if a file path has a target extension (.gs or .ts).
- * @param {string} filePath - The file path to check.
- * @returns {boolean} True if the file is a .gs or .ts file.
- */
-function isTargetFile(filePath: string): boolean {
-  const lower = filePath.toLowerCase();
-  return TARGET_EXTENSIONS.some((ext) => lower.endsWith(ext));
+function buildJSDocMessage(fileName: string, missing: MissingDocstring[]): string {
+  const itemList = missing.map((m) => `- \`${m.name}\` (line ${m.line})`).join("\n");
+  return (
+    `**Docstring Check:** The following functions/methods in \`${fileName}\` are missing JSDoc docstrings:\n\n` +
+    `${itemList}\n\n` +
+    `Please add proper JSDoc comments with \`@param\` and \`@returns\` tags above each item. Example:\n\n` +
+    `\`\`\`javascript\n` +
+    `/**\n` +
+    ` * Brief description of what this function does.\n` +
+    ` * @param {Type} paramName - Description\n` +
+    ` * @returns {Type} Description\n` +
+    ` */\n` +
+    `function example(paramName) { ... }\n` +
+    `\`\`\``
+  );
 }
 
-/**
- * Checks whether a JSDoc block comment exists directly above a given line.
- * @param {string[]} lines - All lines of the file.
- * @param {number} functionLineIndex - The line index of the function to check.
- * @returns {boolean} True if a JSDoc /** comment is found immediately above.
- */
-function hasJSDocAbove(lines: string[], functionLineIndex: number): boolean {
-  let inBlockComment = false;
+function buildPythonMessage(fileName: string, missing: MissingDocstring[], style: "google" | "numpy"): string {
+  const itemList = missing.map((m) => `- \`${m.name}\` (line ${m.line})`).join("\n");
+  const example =
+    style === "google"
+      ? `\`\`\`python\n` +
+        `def example(param_name: str) -> bool:\n` +
+        `    """Brief description of what this function does.\n` +
+        `\n` +
+        `    Args:\n` +
+        `        param_name: Description of the parameter.\n` +
+        `\n` +
+        `    Returns:\n` +
+        `        bool: Description of the return value.\n` +
+        `    """\n` +
+        `\`\`\``
+      : `\`\`\`python\n` +
+        `def example(param_name: str) -> bool:\n` +
+        `    """Brief description of what this function does.\n` +
+        `\n` +
+        `    Parameters\n` +
+        `    ----------\n` +
+        `    param_name : str\n` +
+        `        Description of the parameter.\n` +
+        `\n` +
+        `    Returns\n` +
+        `    -------\n` +
+        `    bool\n` +
+        `        Description of the return value.\n` +
+        `    """\n` +
+        `\`\`\``;
 
-  for (let i = functionLineIndex - 1; i >= 0; i--) {
-    const line = lines[i].trim();
-
-    if (line === "") {
-      continue;
-    }
-
-    if (inBlockComment) {
-      if (line.startsWith("/**")) {
-        return true;
-      }
-      continue;
-    }
-
-    if (line.endsWith("*/")) {
-      inBlockComment = true;
-      if (line.startsWith("/*") && !line.startsWith("/**")) {
-        return false;
-      }
-      if (line.startsWith("/**")) {
-        return true;
-      }
-      continue;
-    }
-
-    return false;
-  }
-
-  return false;
+  return (
+    `**Docstring Check:** The following functions/classes in \`${fileName}\` are missing ${style}-style docstrings:\n\n` +
+    `${itemList}\n\n` +
+    `Please add proper docstrings. Example:\n\n` +
+    `${example}`
+  );
 }
 
-/**
- * Scans file content for function declarations that are missing JSDoc docstrings.
- * @param {string} content - The full text content of the file.
- * @returns {string[]} Array of function names missing JSDoc comments.
- */
-function findMissingDocstrings(content: string): string[] {
-  const lines = content.split(/\r?\n/);
-  const missing: string[] = [];
+function buildUnsupportedMessage(ext: string, supported: string[]): string {
+  return (
+    `**Docstring Enforcer:** File type \`${ext}\` is not supported.\n\n` +
+    `Supported extensions: ${supported.join(", ")}\n\n` +
+    `To add support, create a new language factory in \`.pi/docstring-enforcer/factories/\` and register it in \`docstring_config.json\`.`
+  );
+}
 
-  const patterns = [
-    // function foo(...)
-    { regex: /^\s*function\s+(\w+)(?:<[^>]+>)?\s*\(/, nameIndex: 1 },
-    // const foo = function(...)
-    { regex: /^\s*(?:const|let|var)\s+(\w+)\s*=\s*function\s*\(/, nameIndex: 1 },
-    // const foo = (args) =>  or  const foo = async (args) =>
-    { regex: /^\s*(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s+)?\([^)]*\)\s*=>/, nameIndex: 1 },
-    // const foo = (args): Type =>  or  const foo = async (args): Type =>
-    { regex: /^\s*(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s+)?\([^)]*\)\s*:\s*[^=]+?\s*=>/, nameIndex: 1 },
-    // const foo = x =>  (single-param arrow without parens)
-    { regex: /^\s*(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s+)?\w+\s*=>/, nameIndex: 1 },
-    // shorthand method: foo() {
-    { regex: /^\s*(\w+)\s*\([^)]*\)\s*\{/, nameIndex: 1, skipKeywords: true },
-    // getter/setter: get foo() { / set foo(v) {
-    { regex: /^\s*(?:get|set)\s+(\w+)\s*\(/, nameIndex: 1 },
-  ];
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    for (const pattern of patterns) {
-      const match = line.match(pattern.regex);
-      if (match) {
-        const funcName = match[pattern.nameIndex];
-        if (!funcName) continue;
-        if (pattern.skipKeywords && JS_KEYWORDS.has(funcName)) continue;
-
-        if (!hasJSDocAbove(lines, i)) {
-          missing.push(funcName);
-        }
-        break;
-      }
-    }
-  }
-
-  return missing;
+function askPythonStyleMessage(): string {
+  return (
+    `**Docstring Enforcer:** This project uses Python files, but no docstring style is configured.\n\n` +
+    `Please choose a style by setting \`pythonStyle\` in \`.pi/docstring-enforcer/docstring_config.json\`:\n` +
+    `- \`"google"\` (recommended for general projects)\n` +
+    `- \`"numpy"\` (common for scientific/ML projects)\n\n` +
+    `Example:\n` +
+    `\`\`\`json\n` +
+    `{\n` +
+    `  "pythonStyle": "google"\n` +
+    `}\n` +
+    `\`\`\``
+  );
 }
 
 export default function (pi: ExtensionAPI) {
@@ -127,38 +115,43 @@ export default function (pi: ExtensionAPI) {
     }
 
     const absolutePath = resolve(ctx.cwd, filePath);
-
-    if (!isTargetFile(absolutePath)) {
-      return undefined;
-    }
-
     const normalizedPath = absolutePath.replace(/\\/g, "/").toLowerCase();
     const cwdNormalized = ctx.cwd.replace(/\\/g, "/").toLowerCase();
     if (!normalizedPath.startsWith(cwdNormalized)) {
       return undefined;
     }
 
+    const config = loadConfig(resolve(ctx.cwd, CONFIG_PATH));
+
+    if (isIgnored(absolutePath, config)) {
+      return undefined;
+    }
+
+    const language = detectLanguage(absolutePath, config);
+    const extIndex = absolutePath.lastIndexOf(".");
+    const ext = extIndex >= 0 ? absolutePath.slice(extIndex).toLowerCase() : "";
+
+    if (!language) {
+      pi.sendUserMessage(buildUnsupportedMessage(ext, getSupportedExtensions(config)), { deliverAs: "steer" });
+      return undefined;
+    }
+
+    if (language === "python" && !config.pythonStyle) {
+      pi.sendUserMessage(askPythonStyleMessage(), { deliverAs: "steer" });
+      return undefined;
+    }
+
     try {
       const content = readFileSync(absolutePath, "utf-8");
-      const missing = findMissingDocstrings(content);
+      const checker = getChecker(language, config);
+      const result = checker.check(content);
 
-      if (missing.length > 0) {
-        const fileName = absolutePath.split(/[\\/]/).pop();
-        const funcList = missing.map((f) => `- \`${f}\``).join("\n");
-
+      if (result.missing.length > 0) {
+        const fileName = absolutePath.split(/[\\/]/).pop() ?? absolutePath;
         const message =
-          `**Docstring Check:** The following functions in \`${fileName}\` are missing JSDoc docstrings:\n\n` +
-          `${funcList}\n\n` +
-          `Please add proper JSDoc comments with \`@param\` and \`@returns\` tags above each function. Example:\n\n` +
-          `\`\`\`javascript\n` +
-          `/**\n` +
-          ` * Brief description of what this function does.\n` +
-          ` * @param {Type} paramName - Description\n` +
-          ` * @returns {Type} Description\n` +
-          ` */\n` +
-          `function example(paramName) { ... }\n` +
-          `\`\`\``;
-
+          language === "python"
+            ? buildPythonMessage(fileName, result.missing, config.pythonStyle ?? "google")
+            : buildJSDocMessage(fileName, result.missing);
         pi.sendUserMessage(message, { deliverAs: "steer" });
       }
     } catch {
