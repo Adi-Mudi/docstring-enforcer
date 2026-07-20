@@ -57,9 +57,17 @@ After every file write or edit, automatically detect missing docstrings and prom
 - Linting docstring quality or completeness.
 - Support for languages other than JS/TS/GAS and Python in v1.0.0.
 
+## Installation / Distribution
+
+- The extension is loaded by Pi via auto-discovery from `~/.pi/agent/extensions/docstring-enforcer/`.
+- The entry point is `index.ts`.
+- A symlink from the project folder to the Pi extensions folder is the recommended development setup.
+- A global symlink has been created and verified on the development machine.
+
 ## Success Criteria
 
 - All supported file types trigger a steer message when docstrings are missing.
 - No false positives for ignored files.
 - No false positives for functions/methods that already have docstrings.
 - Tests cover all public functions and integration scenarios.
+- Symlink installation works and live edits reflect after `/reload`.

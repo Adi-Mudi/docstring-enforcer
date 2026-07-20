@@ -3,10 +3,13 @@
 ## Getting Started
 
 1. Clone or navigate to the project.
-2. Load the extension in Pi:
+2. Symlink the extension into Pi's global extensions folder for live development:
    ```bash
-   pi -e /path/to/.pi/docstring-enforcer
+   ln -s /path/to/project/.pi/docstring-enforcer ~/.pi/agent/extensions/docstring-enforcer
    ```
+3. Start Pi and run `/reload`.
+
+The entry point is `.pi/docstring-enforcer/index.ts`. Pi auto-discovers it from the symlinked folder.
 
 ## Running Tests
 

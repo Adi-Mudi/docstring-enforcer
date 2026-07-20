@@ -13,13 +13,37 @@ A Pi CLI extension that checks JavaScript, TypeScript, Google Apps Script, and P
 
 ## Installation
 
-Load the extension in Pi:
+### Quick test
 
 ```bash
-pi -e /path/to/.pi/docstring-enforcer
+pi -e /path/to/.pi/docstring-enforcer/docstring-enforcer.ts
 ```
 
-To load it automatically for a project, add it to your Pi configuration.
+### Symlink for development (recommended)
+
+Symlink the extension folder so Pi auto-discovers it. This is best when you want live edits to apply immediately.
+
+Global (all projects):
+
+```bash
+ln -s /path/to/your/project/.pi/docstring-enforcer ~/.pi/agent/extensions/docstring-enforcer
+```
+
+Project-local (this project only):
+
+```bash
+ln -s /path/to/your/project/.pi/docstring-enforcer /path/to/your/project/.pi/extensions/docstring-enforcer
+```
+
+Then start Pi or run `/reload`.
+
+> **Verified:** The global symlink has been created and tested. When Pi writes a TypeScript function without JSDoc, the extension sends a steer message and the AI adds a docstring like the example below.
+
+### Install via Pi CLI
+
+```bash
+pi install /absolute/path/to/.pi/docstring-enforcer
+```
 
 ## Configuration
 
@@ -80,10 +104,33 @@ For Python projects, set `pythonStyle` to `"google"` or `"numpy"`.
 3. If any function, method, class, getter, or setter is missing a docstring, the extension sends a steer message.
 4. The AI adds the missing docstrings.
 
+## What it looks like
+
+If you ask Pi to create a TypeScript function without a docstring:
+
+```ts
+function hello(): string {
+    return "world";
+}
+```
+
+The extension prompts the AI, and the final file becomes:
+
+```ts
+/**
+ * Returns the string "world".
+ * @returns {string} The word "world".
+ */
+function hello(): string {
+    return "world";
+}
+```
+
 ## Architecture
 
 ```
 .pi/docstring-enforcer/
+├── index.ts                    # Entry point for Pi auto-discovery
 ├── docstring-enforcer.ts       # Main engine
 ├── docstring_config.json       # Configuration
 ├── factories/

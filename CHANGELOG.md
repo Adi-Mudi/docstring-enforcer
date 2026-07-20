@@ -10,4 +10,6 @@
 - Configurable ignore list via `docstring_config.json`.
 - Unsupported file type notifications.
 - First-time Python style selection prompt.
+- `index.ts` entry point for Pi auto-discovery.
+- Verified symlink installation steps in README.
 - Comprehensive unit and integration tests.

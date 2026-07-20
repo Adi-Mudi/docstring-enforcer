@@ -15,3 +15,4 @@
 | NFR-003 | Extensible language architecture | `factories/index.ts` + per-language checkers | `checker-dispatch.test.ts` |
 | NFR-004 | Comprehensive tests | Test suite in `.pi/docstring-enforcer/tests/` | `npx tsx --test ...` |
 | NFR-005 | Minimal dependencies | Uses Node.js built-ins + `@earendil-works/pi-coding-agent` types | `package.json` |
+| — | Pi auto-discovery entry point | `.pi/docstring-enforcer/index.ts` | Manual verification via symlink |
