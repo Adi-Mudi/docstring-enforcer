@@ -64,6 +64,15 @@ function buildPythonMessage(
   );
 }
 
+function buildRustMessage(fileName: string, missing: { name: string; kind: string; line: number }[]): string {
+  const itemList = missing.map((m) => `- \`${m.name}\` (${m.kind}, line ${m.line})`).join("\n");
+  return (
+    `**Docstring Check:** The following public items in \`${fileName}\` are missing Rust doc comments:\n\n` +
+    `${itemList}\n\n` +
+    `Rust documents items with \`///\` comments rendered by rustdoc.`
+  );
+}
+
 function buildUnsupportedMessage(ext: string, supported: string[]): string {
   return (
     `**Docstring Enforcer:** File type \`${ext}\` is not supported.\n\n` +
@@ -112,10 +121,19 @@ describe("message builders", () => {
   });
 
   it("buildUnsupportedMessage lists supported extensions", () => {
-    const message = buildUnsupportedMessage(".rs", [".ts", ".py"]);
-    assert.ok(message.includes(".rs"));
+    const message = buildUnsupportedMessage(".go", [".ts", ".py"]);
+    assert.ok(message.includes(".go"));
     assert.ok(message.includes(".ts"));
     assert.ok(message.includes(".py"));
+  });
+
+  it("buildRustMessage includes file name, kind, and line", () => {
+    const message = buildRustMessage("foo.rs", [{ name: "bar", kind: "function", line: 4 }]);
+    assert.ok(message.includes("foo.rs"));
+    assert.ok(message.includes("bar"));
+    assert.ok(message.includes("function"));
+    assert.ok(message.includes("line 4"));
+    assert.ok(message.includes("///"));
   });
 
   it("askPythonStyleMessage mentions both styles", () => {

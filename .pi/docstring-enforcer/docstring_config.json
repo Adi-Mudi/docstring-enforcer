@@ -51,7 +51,8 @@
     ".ts": "javascript",
     ".tsx": "javascript",
     ".gs": "javascript",
-    ".py": "python"
+    ".py": "python",
+    ".rs": "rust"
   },
   "pythonStyle": null
 }

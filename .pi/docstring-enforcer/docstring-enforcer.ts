@@ -20,6 +20,28 @@ import {
 
 const CONFIG_PATH = ".pi/docstring-enforcer/docstring_config.json";
 
+function buildRustMessage(fileName: string, missing: MissingDocstring[]): string {
+  const itemList = missing.map((m) => `- \`${m.name}\` (${m.kind}, line ${m.line})`).join("\n");
+  return (
+    `**Docstring Check:** The following public items in \`${fileName}\` are missing Rust doc comments:\n\n` +
+    `${itemList}\n\n` +
+    `Rust documents items with \`///\` comments rendered by rustdoc. Write a one-line summary in third person present tense, then the details, then an example:\n\n` +
+    "```rust\n" +
+    "/// Returns the parsed value for `key`, or `None` when absent.\n" +
+    "///\n" +
+    "/// # Examples\n" +
+    "///\n" +
+    "/// ```\n" +
+    "/// assert_eq!(lookup(\"a\"), Some(1));\n" +
+    "/// ```\n" +
+    "pub fn lookup(key: &str) -> Option<i32> { ... }\n" +
+    "```\n\n" +
+    `Add \`# Errors\` when the function returns \`Result\`, \`# Panics\` when it can panic, and \`# Safety\` when it is \`unsafe\`. ` +
+    `Prefer \`///\` over \`/** ... */\`, use \`//!\` only for module or crate docs, and place the comment directly above the item, above any attributes. ` +
+    `If an item genuinely needs no docs, mark it \`#[doc(hidden)]\` or \`#[allow(missing_docs)]\`.`
+  );
+}
+
 function buildJSDocMessage(fileName: string, missing: MissingDocstring[]): string {
   const itemList = missing.map((m) => `- \`${m.name}\` (line ${m.line})`).join("\n");
   return (
@@ -148,10 +170,14 @@ export default function (pi: ExtensionAPI) {
 
       if (result.missing.length > 0) {
         const fileName = absolutePath.split(/[\\/]/).pop() ?? absolutePath;
-        const message =
-          language === "python"
-            ? buildPythonMessage(fileName, result.missing, config.pythonStyle ?? "google")
-            : buildJSDocMessage(fileName, result.missing);
+        let message: string;
+        if (language === "python") {
+          message = buildPythonMessage(fileName, result.missing, config.pythonStyle ?? "google");
+        } else if (language === "rust") {
+          message = buildRustMessage(fileName, result.missing);
+        } else {
+          message = buildJSDocMessage(fileName, result.missing);
+        }
         pi.sendUserMessage(message, { deliverAs: "steer" });
       }
     } catch {

@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { getChecker, loadConfig } from "../factories/index.ts";
 import { jsDocstringChecker } from "../factories/js-docstring-checker.ts";
+import { rustDocstringChecker } from "../factories/rust-docstring-checker.ts";
 
 describe("getChecker", () => {
   const config = loadConfig("/tmp/docstring-dispatch-config.json");
@@ -20,10 +21,18 @@ describe("getChecker", () => {
     assert.equal(result.missing[0].name, "foo");
   });
 
+  it("returns Rust checker for rust", () => {
+    const checker = getChecker("rust", config);
+    assert.equal(checker, rustDocstringChecker);
+    const result = checker.check("pub fn foo() {}\n");
+    assert.equal(result.missing.length, 1);
+    assert.equal(result.missing[0].name, "foo");
+  });
+
   it("throws for unsupported language", () => {
     assert.throws(() => {
       // @ts-expect-error testing invalid input
-      getChecker("rust", config);
+      getChecker("go", config);
     });
   });
 });

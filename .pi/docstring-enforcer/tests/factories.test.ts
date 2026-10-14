@@ -47,8 +47,12 @@ describe("factories", () => {
       assert.equal(detectLanguage("/project/foo.py", config), "python");
     });
 
+    it("detects Rust", () => {
+      assert.equal(detectLanguage("/project/foo.rs", config), "rust");
+    });
+
     it("returns undefined for unsupported files", () => {
-      assert.equal(detectLanguage("/project/foo.rs", config), undefined);
+      assert.equal(detectLanguage("/project/foo.go", config), undefined);
     });
   });
 
@@ -59,6 +63,7 @@ describe("factories", () => {
       const exts = getSupportedExtensions(config);
       assert.ok(exts.includes(".ts"));
       assert.ok(exts.includes(".py"));
+      assert.ok(exts.includes(".rs"));
     });
   });
 });

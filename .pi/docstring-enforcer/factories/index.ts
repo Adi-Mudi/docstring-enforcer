@@ -1,8 +1,9 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { jsDocstringChecker } from "./js-docstring-checker.ts";
 import { pythonDocstringChecker } from "./python-docstring-checker.ts";
+import { rustDocstringChecker } from "./rust-docstring-checker.ts";
 
-export type Language = "javascript" | "python";
+export type Language = "javascript" | "python" | "rust";
 
 export interface MissingDocstring {
   name: string;
@@ -94,6 +95,7 @@ const DEFAULT_CONFIG: Config = {
     ".tsx": "javascript",
     ".gs": "javascript",
     ".py": "python",
+    ".rs": "rust",
   },
   pythonStyle: null,
 };
@@ -171,6 +173,9 @@ export function getChecker(language: Language, config: Config): DocstringChecker
   }
   if (language === "python") {
     return pythonDocstringChecker(config.pythonStyle ?? "google");
+  }
+  if (language === "rust") {
+    return rustDocstringChecker;
   }
   throw new Error(`No docstring checker available for language: ${language}`);
 }

@@ -1,5 +1,6 @@
 import { jsDocstringChecker } from "./factories/js-docstring-checker.ts";
 import { pythonDocstringChecker } from "./factories/python-docstring-checker.ts";
+import { rustDocstringChecker } from "./factories/rust-docstring-checker.ts";
 import { loadConfig, isIgnored, detectLanguage } from "./factories/index.ts";
 
 // Test JS/TS checker
@@ -53,3 +54,20 @@ console.log("Is .md ignored?", isIgnored("README.md", config));
 console.log("Is node_modules ignored?", isIgnored("/project/node_modules/foo.ts", config));
 console.log("Detect .ts:", detectLanguage("/project/src/foo.ts", config));
 console.log("Detect .py:", detectLanguage("/project/src/foo.py", config));
+
+// Test Rust checker
+const rustCode = `
+/// Documented.
+pub fn ok() {}
+
+pub fn missing() {}
+
+/// Documented.
+pub struct S {
+    pub field: u8,
+}
+`;
+
+const rustResult = rustDocstringChecker.check(rustCode);
+console.log("Rust missing:", rustResult.missing.map((m) => `${m.name} (${m.kind}, line ${m.line})`));
+console.log("Detect .rs:", detectLanguage("/project/src/lib.rs", config));

@@ -113,6 +113,29 @@ describe("docstring-enforcer integration", () => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
+  it("sends a Rust doc steer message for missing Rust doc comments", async () => {
+    const filePath = join(tempDir, "foo.rs");
+    writeFileSync(filePath, "pub fn bar() -> u8 {\n    1\n}\n", "utf-8");
+
+    const pi = createMockPi();
+    extensionFactory(pi);
+
+    const ctx = createMockContext(tempDir);
+    await pi._trigger("tool_result", {
+      toolName: "write",
+      isError: false,
+      input: { path: filePath },
+    } as MockToolResultEvent, ctx);
+
+    const messages = pi.getMessages();
+    assert.equal(messages.length, 1);
+    assert.ok(messages[0].content.includes("bar"));
+    assert.ok(messages[0].content.includes("Rust doc comments"));
+    assert.equal(messages[0].deliverAs, "steer");
+
+    rmSync(tempDir, { recursive: true, force: true });
+  });
+
   it("ignores non-write/edit tools", async () => {
     const pi = createMockPi();
     extensionFactory(pi);
