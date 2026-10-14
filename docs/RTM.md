@@ -10,6 +10,7 @@
 | FR-006 | Send steer message | `docstring-enforcer.ts` `pi.sendUserMessage(...)` | `integration.test.ts`, `messages.test.ts` |
 | FR-007 | Ask Python style on first .py file | `docstring-enforcer.ts` `askPythonStyleMessage()` | `integration.test.ts`, `messages.test.ts` |
 | FR-008 | Inform user for unsupported file type | `docstring-enforcer.ts` `buildUnsupportedMessage()` | `messages.test.ts` |
+| FR-009 | Detect missing Rustdoc in Rust | `rust-docstring-checker.ts` | `rust-docstring-checker.test.ts`, `checker-dispatch.test.ts`, `integration.test.ts` |
 | NFR-001 | No auto-fix | `docstring-enforcer.ts` only sends steer | `integration.test.ts` |
 | NFR-002 | Configurable via JSON | `docstring_config.json` + `loadConfig()` | `factories.test.ts` |
 | NFR-003 | Extensible language architecture | `factories/index.ts` + per-language checkers | `checker-dispatch.test.ts` |

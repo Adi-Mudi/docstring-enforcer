@@ -1,12 +1,13 @@
 # Docstring Enforcer
 
-A Pi CLI extension that checks JavaScript, TypeScript, Google Apps Script, and Python files for missing docstrings after every `write` or `edit` tool call. When missing docstrings are found, it sends a steer message prompting the AI to add them.
+A Pi CLI extension that checks JavaScript, TypeScript, Google Apps Script, Python, and Rust files for missing docstrings after every `write` or `edit` tool call. When missing docstrings are found, it sends a steer message prompting the AI to add them.
 
 ## Features
 
-- Supports `.js`, `.ts`, `.tsx`, `.gs`, and `.py` files.
+- Supports `.js`, `.ts`, `.tsx`, `.gs`, `.py`, and `.rs` files.
 - JSDoc enforcement for JS/TS/GAS.
 - Google-style or NumPy-style docstring enforcement for Python.
+- Rustdoc enforcement for Rust, mirroring rustc's `missing_docs` lint.
 - Configurable ignore list.
 - Informative messages for unsupported file types.
 - First-time Python style selection prompt.
@@ -89,7 +90,8 @@ Edit `.pi/docstring-enforcer/docstring_config.json`:
     ".ts": "javascript",
     ".tsx": "javascript",
     ".gs": "javascript",
-    ".py": "python"
+    ".py": "python",
+    ".rs": "rust"
   },
   "pythonStyle": null
 }
@@ -136,7 +138,8 @@ function hello(): string {
 ├── factories/
 │   ├── index.ts                # Language detector and loader
 │   ├── js-docstring-checker.ts # JS/TS/GAS checker
-│   └── python-docstring-checker.ts # Python checker
+│   ├── python-docstring-checker.ts # Python checker
+│   └── rust-docstring-checker.ts   # Rust checker
 └── tests/                      # Unit and integration tests
 ```
 

@@ -30,6 +30,7 @@ After every file write or edit, automatically detect missing docstrings and prom
 | TypeScript | `.ts`, `.tsx` | JSDoc |
 | Google Apps Script | `.gs` | JSDoc |
 | Python | `.py` | Google or NumPy |
+| Rust | `.rs` | Rustdoc (`///`) |
 
 ## Functional Requirements
 
@@ -41,6 +42,7 @@ After every file write or edit, automatically detect missing docstrings and prom
 6. **FR-006**: Send a steer message when missing docstrings are found.
 7. **FR-007**: Ask the user to configure Python style on first Python file.
 8. **FR-008**: Inform the user when an unsupported file type is encountered.
+9. **FR-009**: Detect missing Rustdoc in Rust items that rustc's `missing_docs` lint would flag.
 
 ## Non-Functional Requirements
 
@@ -55,7 +57,7 @@ After every file write or edit, automatically detect missing docstrings and prom
 - Auto-fixing missing docstrings.
 - Checking inline comments.
 - Linting docstring quality or completeness.
-- Support for languages other than JS/TS/GAS and Python in v1.0.0.
+- Support for languages other than JS/TS/GAS, Python, and Rust.
 
 ## Installation / Distribution
 
