@@ -66,6 +66,11 @@ const DEFAULT_CONFIG: Config = {
     ".woff2",
     ".ttf",
     ".eot",
+    ".excalidraw",
+    ".db",
+    ".sqlite",
+    ".sqlite3",
+    ".sql",
   ],
   ignorePatterns: [
     "node_modules/",
@@ -100,6 +105,11 @@ const DEFAULT_CONFIG: Config = {
   pythonStyle: null,
 };
 
+/**
+ * Merges a partial loaded config over the defaults, falling back per field.
+ * @param {Partial<Config>} loaded - Parsed config values from disk (any field may be missing).
+ * @returns {Config} A complete config with defaults applied for missing fields.
+ */
 function mergeConfig(loaded: Partial<Config>): Config {
   return {
     ignoreExtensions: loaded.ignoreExtensions ?? DEFAULT_CONFIG.ignoreExtensions,

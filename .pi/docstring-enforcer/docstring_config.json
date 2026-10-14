@@ -20,7 +20,12 @@
     ".woff",
     ".woff2",
     ".ttf",
-    ".eot"
+    ".eot",
+    ".excalidraw",
+    ".db",
+    ".sqlite",
+    ".sqlite3",
+    ".sql"
   ],
   "ignorePatterns": [
     "node_modules/",

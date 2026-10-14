@@ -34,6 +34,14 @@ describe("factories", () => {
     it("ignores build output folders", () => {
       assert.equal(isIgnored("/project/dist/bundle.js", config), true);
     });
+
+    it("ignores excalidraw and database/sql files", () => {
+      assert.equal(isIgnored("/project/notes.excalidraw", config), true);
+      assert.equal(isIgnored("/project/data.db", config), true);
+      assert.equal(isIgnored("/project/data.sqlite", config), true);
+      assert.equal(isIgnored("/project/data.sqlite3", config), true);
+      assert.equal(isIgnored("/project/schema.sql", config), true);
+    });
   });
 
   describe("detectLanguage", () => {
