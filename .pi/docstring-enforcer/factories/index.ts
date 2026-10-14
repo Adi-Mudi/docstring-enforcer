@@ -6,7 +6,23 @@ export type Language = "javascript" | "python";
 
 export interface MissingDocstring {
   name: string;
-  kind: "function" | "method" | "class" | "getter" | "setter";
+  kind:
+    | "function"
+    | "method"
+    | "class"
+    | "getter"
+    | "setter"
+    | "struct"
+    | "field"
+    | "enum"
+    | "variant"
+    | "trait"
+    | "union"
+    | "module"
+    | "constant"
+    | "static"
+    | "typeAlias"
+    | "macro";
   line: number;
 }
 
