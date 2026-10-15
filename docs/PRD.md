@@ -31,6 +31,9 @@ After every file write or edit, automatically detect missing docstrings and prom
 | Google Apps Script | `.gs` | JSDoc |
 | Python | `.py` | Google or NumPy |
 | Rust | `.rs` | Rustdoc (`///`) |
+| R | `.r`, `.R` | Roxygen2 (`#'`) |
+| C | `.c` | Doxygen / kernel-doc (`/** */`, `//!`) |
+| C++ | `.cpp`, `.cc`, `.cxx`, `.hpp`, `.hh`, `.hxx` | Doxygen (`/** */`, `///`, `//!`) |
 
 ## Functional Requirements
 
@@ -43,6 +46,9 @@ After every file write or edit, automatically detect missing docstrings and prom
 7. **FR-007**: Ask the user to configure Python style on first Python file.
 8. **FR-008**: Inform the user when an unsupported file type is encountered.
 9. **FR-009**: Detect missing Rustdoc in Rust items that rustc's `missing_docs` lint would flag.
+10. **FR-010**: Detect missing Roxygen2 comment blocks in R functions, S4 methods/classes/slots, and replacement functions; honor `@noRd` and skip S3 methods / anonymous functions.
+11. **FR-011**: Detect missing Doxygen/kernel-doc comment blocks in C functions, structs, typedefs, and macros; exempt `static` internals unless `strictMode` is enabled; dedupe by symbol name across the file.
+12. **FR-012**: Detect missing Doxygen comment blocks in C++ free functions, class/struct definitions, enums, operator overloads, and public member functions; exempt `override`/`= delete`/`= default` declarations, constructors/destructors, anonymous-namespace entities, and private members (unless `strictMode`).
 
 ## Non-Functional Requirements
 
@@ -57,7 +63,8 @@ After every file write or edit, automatically detect missing docstrings and prom
 - Auto-fixing missing docstrings.
 - Checking inline comments.
 - Linting docstring quality or completeness.
-- Support for languages other than JS/TS/GAS, Python, and Rust.
+- Support for languages other than JS/TS/GAS, Python, Rust, R, C, and C++.
+- Mapping the ambiguous `.h` extension to C or C++ (projects can map it themselves).
 
 ## Installation / Distribution
 

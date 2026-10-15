@@ -29,6 +29,35 @@ describe("getChecker", () => {
     assert.equal(result.missing[0].name, "foo");
   });
 
+  it("returns R checker for r", () => {
+    const checker = getChecker("r", config);
+    const result = checker.check("foo <- function() 1\n");
+    assert.equal(result.missing.length, 1);
+    assert.equal(result.missing[0].name, "foo");
+  });
+
+  it("returns C checker for c", () => {
+    const checker = getChecker("c", config);
+    const result = checker.check("int foo(void);\n");
+    assert.equal(result.missing.length, 1);
+    assert.equal(result.missing[0].name, "foo");
+  });
+
+  it("returns C++ checker for cpp", () => {
+    const checker = getChecker("cpp", config);
+    const result = checker.check("int foo() { return 0; }\n");
+    assert.equal(result.missing.length, 1);
+    assert.equal(result.missing[0].name, "foo");
+    assert.equal(result.missing[0].kind, "function");
+  });
+
+  it("applies strictMode to C/C++ checkers", () => {
+    const strict = getChecker("c", { ...config, strictMode: true });
+    assert.equal(strict.check("static int helper(void);\n").missing.length, 1);
+    const lenient = getChecker("c", { ...config, strictMode: false });
+    assert.equal(lenient.check("static int helper(void);\n").missing.length, 0);
+  });
+
   it("throws for unsupported language", () => {
     assert.throws(() => {
       // @ts-expect-error testing invalid input

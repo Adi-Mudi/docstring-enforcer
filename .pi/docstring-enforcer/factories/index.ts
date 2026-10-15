@@ -2,8 +2,11 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { jsDocstringChecker } from "./js-docstring-checker.ts";
 import { pythonDocstringChecker } from "./python-docstring-checker.ts";
 import { rustDocstringChecker } from "./rust-docstring-checker.ts";
+import { rDocstringChecker } from "./r-docstring-checker.ts";
+import { cDocstringChecker } from "./c-docstring-checker.ts";
+import { cppDocstringChecker } from "./cpp-docstring-checker.ts";
 
-export type Language = "javascript" | "python" | "rust";
+export type Language = "javascript" | "python" | "rust" | "r" | "c" | "cpp";
 
 export interface MissingDocstring {
   name: string;
@@ -41,6 +44,8 @@ export interface Config {
   ignoreFiles: string[];
   supportedLanguages: Record<string, Language>;
   pythonStyle: "google" | "numpy" | null;
+  /** When true, C/C++ checkers also flag static/private entities (D5/D6). */
+  strictMode?: boolean;
 }
 
 const DEFAULT_CONFIG: Config = {
@@ -98,11 +103,21 @@ const DEFAULT_CONFIG: Config = {
     ".js": "javascript",
     ".ts": "javascript",
     ".tsx": "javascript",
+    ".mjs": "javascript",
     ".gs": "javascript",
     ".py": "python",
     ".rs": "rust",
+    ".r": "r",
+    ".c": "c",
+    ".cpp": "cpp",
+    ".cc": "cpp",
+    ".cxx": "cpp",
+    ".hpp": "cpp",
+    ".hh": "cpp",
+    ".hxx": "cpp",
   },
   pythonStyle: null,
+  strictMode: false,
 };
 
 /**
@@ -117,6 +132,7 @@ function mergeConfig(loaded: Partial<Config>): Config {
     ignoreFiles: loaded.ignoreFiles ?? DEFAULT_CONFIG.ignoreFiles,
     supportedLanguages: loaded.supportedLanguages ?? DEFAULT_CONFIG.supportedLanguages,
     pythonStyle: loaded.pythonStyle ?? DEFAULT_CONFIG.pythonStyle,
+    strictMode: loaded.strictMode ?? DEFAULT_CONFIG.strictMode,
   };
 }
 
@@ -186,6 +202,15 @@ export function getChecker(language: Language, config: Config): DocstringChecker
   }
   if (language === "rust") {
     return rustDocstringChecker;
+  }
+  if (language === "r") {
+    return rDocstringChecker;
+  }
+  if (language === "c") {
+    return cDocstringChecker(config.strictMode ?? false);
+  }
+  if (language === "cpp") {
+    return cppDocstringChecker(config.strictMode ?? false);
   }
   throw new Error(`No docstring checker available for language: ${language}`);
 }

@@ -55,9 +55,19 @@
     ".js": "javascript",
     ".ts": "javascript",
     ".tsx": "javascript",
+    ".mjs": "javascript",
     ".gs": "javascript",
     ".py": "python",
-    ".rs": "rust"
+    ".rs": "rust",
+    ".r": "r",
+    ".c": "c",
+    ".cpp": "cpp",
+    ".cc": "cpp",
+    ".cxx": "cpp",
+    ".hpp": "cpp",
+    ".hh": "cpp",
+    ".hxx": "cpp"
   },
-  "pythonStyle": null
+  "pythonStyle": null,
+  "strictMode": false
 }

@@ -3,7 +3,13 @@ import assert from "node:assert/strict";
 import { existsSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadConfig, isIgnored, detectLanguage, getSupportedExtensions } from "../factories/index.ts";
+import {
+  loadConfig,
+  isIgnored,
+  detectLanguage,
+  getSupportedExtensions,
+  getChecker,
+} from "../factories/index.ts";
 
 describe("factories", () => {
   describe("loadConfig", () => {
@@ -12,6 +18,7 @@ describe("factories", () => {
       const config = loadConfig(path);
       assert.ok(existsSync(path));
       assert.ok(config.supportedLanguages[".ts"]);
+      assert.ok(config.supportedLanguages[".mjs"]);
       unlinkSync(path);
     });
   });
@@ -61,6 +68,42 @@ describe("factories", () => {
 
     it("returns undefined for unsupported files", () => {
       assert.equal(detectLanguage("/project/foo.go", config), undefined);
+    });
+
+    // Phase 4 — new languages
+    it("detects R", () => {
+      assert.equal(detectLanguage("/project/foo.R", config), "r");
+      assert.equal(detectLanguage("/project/foo.r", config), "r");
+    });
+
+    it("detects C", () => {
+      assert.equal(detectLanguage("/project/foo.c", config), "c");
+    });
+
+    it("detects C++ from .cpp and .hpp", () => {
+      assert.equal(detectLanguage("/project/foo.cpp", config), "cpp");
+      assert.equal(detectLanguage("/project/foo.hpp", config), "cpp");
+    });
+
+    it("does not map .h to C (research D3: ambiguous)", () => {
+      assert.equal(detectLanguage("/project/foo.h", config), undefined);
+    });
+  });
+
+  describe("getChecker (Phase 4 smoke)", () => {
+    const config = loadConfig(join(tmpdir(), `checker-config-${Date.now()}.json`));
+
+    it("returns a working checker for r/c/cpp", () => {
+      for (const lang of ["r", "c", "cpp"] as const) {
+        const checker = getChecker(lang, config);
+        assert.equal(typeof checker.check, "function");
+        const { missing } = checker.check("");
+        assert.ok(Array.isArray(missing));
+      }
+    });
+
+    it("defaults strictMode to false in config", () => {
+      assert.equal(config.strictMode, false);
     });
   });
 

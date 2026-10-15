@@ -11,6 +11,9 @@
 | FR-007 | Ask Python style on first .py file | `docstring-enforcer.ts` `askPythonStyleMessage()` | `integration.test.ts`, `messages.test.ts` |
 | FR-008 | Inform user for unsupported file type | `docstring-enforcer.ts` `buildUnsupportedMessage()` | `messages.test.ts` |
 | FR-009 | Detect missing Rustdoc in Rust | `rust-docstring-checker.ts` | `rust-docstring-checker.test.ts`, `checker-dispatch.test.ts`, `integration.test.ts` |
+| FR-010 | Detect missing Roxygen2 blocks in R | `r-docstring-checker.ts` | `r-docstring-checker.test.ts`, `checker-dispatch.test.ts` |
+| FR-011 | Detect missing Doxygen/kernel-doc blocks in C | `c-docstring-checker.ts` | `c-docstring-checker.test.ts`, `checker-dispatch.test.ts` |
+| FR-012 | Detect missing Doxygen blocks in C++ | `cpp-docstring-checker.ts` | `cpp-docstring-checker.test.ts`, `checker-dispatch.test.ts` |
 | NFR-001 | No auto-fix | `docstring-enforcer.ts` only sends steer | `integration.test.ts` |
 | NFR-002 | Configurable via JSON | `docstring_config.json` + `loadConfig()` | `factories.test.ts` |
 | NFR-003 | Extensible language architecture | `factories/index.ts` + per-language checkers | `checker-dispatch.test.ts` |

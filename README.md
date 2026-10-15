@@ -1,13 +1,16 @@
 # Docstring Enforcer
 
-A Pi CLI extension that checks JavaScript, TypeScript, Google Apps Script, Python, and Rust files for missing docstrings after every `write` or `edit` tool call. When missing docstrings are found, it sends a steer message prompting the AI to add them.
+A Pi CLI extension that checks JavaScript, TypeScript, Google Apps Script, Python, Rust, R, C, and C++ files for missing docstrings after every `write` or `edit` tool call. When missing docstrings are found, it sends a steer message prompting the AI to add them.
 
 ## Features
 
-- Supports `.js`, `.ts`, `.tsx`, `.gs`, `.py`, and `.rs` files.
+- Supports `.js`, `.ts`, `.tsx`, `.gs`, `.py`, `.rs`, `.r`/`.R`, `.c`, `.cpp`/`.cc`/`.cxx`/`.hpp`/`.hh`/`.hxx` files.
 - JSDoc enforcement for JS/TS/GAS.
 - Google-style or NumPy-style docstring enforcement for Python.
 - Rustdoc enforcement for Rust, mirroring rustc's `missing_docs` lint.
+- Roxygen2-style (`#'`) enforcement for R, honoring `@noRd`.
+- Doxygen/kernel-doc enforcement for C (static internals exempt unless `strictMode`).
+- Doxygen enforcement for C++ (public API by default; `strictMode` extends to private members and static functions).
 - Configurable ignore list.
 - Informative messages for unsupported file types.
 - First-time Python style selection prompt.
@@ -107,13 +110,25 @@ Edit `.pi/docstring-enforcer/docstring_config.json`:
     ".tsx": "javascript",
     ".gs": "javascript",
     ".py": "python",
-    ".rs": "rust"
+    ".rs": "rust",
+    ".r": "r",
+    ".R": "r",
+    ".c": "c",
+    ".cpp": "cpp",
+    ".cc": "cpp",
+    ".cxx": "cpp",
+    ".hpp": "cpp",
+    ".hh": "cpp",
+    ".hxx": "cpp"
   },
-  "pythonStyle": null
+  "pythonStyle": null,
+  "strictMode": false
 }
 ```
 
 For Python projects, set `pythonStyle` to `"google"` or `"numpy"`.
+
+For C/C++, `strictMode` (default `false`) extends coverage: C `static` internals and C++ private members / `static` free functions are also checked. Note that plain `.h` is intentionally not mapped (ambiguous between C and C++) — add it yourself to `supportedLanguages` if your project is unambiguous.
 
 ## Usage
 
@@ -155,7 +170,10 @@ function hello(): string {
 │   ├── index.ts                # Language detector and loader
 │   ├── js-docstring-checker.ts # JS/TS/GAS checker
 │   ├── python-docstring-checker.ts # Python checker
-│   └── rust-docstring-checker.ts   # Rust checker
+│   ├── rust-docstring-checker.ts   # Rust checker
+│   ├── r-docstring-checker.ts      # R checker
+│   ├── c-docstring-checker.ts      # C checker
+│   └── cpp-docstring-checker.ts    # C++ checker
 └── tests/                      # Unit and integration tests
 ```
 
